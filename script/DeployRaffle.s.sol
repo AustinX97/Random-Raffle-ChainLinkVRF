@@ -2,42 +2,58 @@
 pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
-import {HelperConfig} from "./HelperConfig.s.sol";
 import {Raffle} from "../src/Raffle.sol";
-import {AddConsumer, CreateSubscription, FundSubscription} from "./Interactions.s.sol";
+import {HelperConfig} from "./HelperConfig.s.sol";
+import {CreateSubscription, FundSubscription, AddConsumer} from "./Interactions.s.sol";
 
 contract DeployRaffle is Script {
     function run() external returns (Raffle, HelperConfig) {
-        HelperConfig helperConfig = new HelperConfig(); // This comes with our mocks!
-        AddConsumer addConsumer = new AddConsumer();
-        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        HelperConfig helperConfigObj = new HelperConfig();
+        (
+            uint256 _enteranceFee,
+            uint256 interval,
+            uint256 lastTimeStamp,
+            address vrfCoordinator,
+            bytes32 gasLane,
+            uint64 subscriptionId,
+            uint32 callbackGasLimit,
+            address linkAdd
+        ) = helperConfigObj.activeNetworkConfig();
 
-        if (config.subscriptionId == 0) {
-            CreateSubscription createSubscription = new CreateSubscription();
-            (config.subscriptionId, config.vrfCoordinatorV2_5) =
-                createSubscription.createSubscription(config.vrfCoordinatorV2_5, config.account);
-
-            FundSubscription fundSubscription = new FundSubscription();
-            fundSubscription.fundSubscription(
-                config.vrfCoordinatorV2_5, config.subscriptionId, config.link, config.account
+        if (subscriptionId == 0) {
+            // We need to create a sub ID
+            CreateSubscription creatrSubscriptionObj = new CreateSubscription();
+            subscriptionId = creatrSubscriptionObj.createSubscription(
+                vrfCoordinator
             );
-
-            helperConfig.setConfig(block.chainid, config);
+            //Now we have the SubId, we need to fund it as well, that we do in Interactions.s.sol
+            FundSubscription fundSubscriptionObj = new FundSubscription();
+            fundSubscriptionObj.fundSubscription(
+                subscriptionId,
+                vrfCoordinator,
+                linkAdd
+            );
         }
 
-        vm.startBroadcast(config.account);
-        Raffle raffle = new Raffle(
-            config.subscriptionId,
-            config.gasLane,
-            config.automationUpdateInterval,
-            config.raffleEntranceFee,
-            config.callbackGasLimit,
-            config.vrfCoordinatorV2_5
+        vm.startBroadcast();
+        Raffle raffleObj = new Raffle(
+            _enteranceFee,
+            interval,
+            lastTimeStamp,
+            vrfCoordinator,
+            gasLane,
+            subscriptionId,
+            callbackGasLimit
         );
         vm.stopBroadcast();
 
-        // We already have a broadcast in here
-        addConsumer.addConsumer(address(raffle), config.vrfCoordinatorV2_5, config.subscriptionId, config.account);
-        return (raffle, helperConfig);
+        AddConsumer addConsumerObj = new AddConsumer();
+        addConsumerObj.addConsumer(
+            address(raffleObj),
+            vrfCoordinator,
+            subscriptionId
+        );
+
+        return (raffleObj, helperConfigObj);
     }
 }

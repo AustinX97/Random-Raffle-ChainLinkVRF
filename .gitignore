@@ -13,6 +13,10 @@ docs/
 
 # Dotenv file
 .env
-
+.env.example
 # zkSync
 zkout/
+
+# Readme
+README.md/
+RaffleDotSol.md/
