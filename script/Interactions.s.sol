@@ -10,21 +10,17 @@ import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 contract CreateSubscription is Script {
     function CreateSubscriptionUsingConfig() public returns (uint64) {
         HelperConfig helperConfigObj = new HelperConfig();
-        (, , , address vrfCoordinator, , , , ) = helperConfigObj
-            .activeNetworkConfig();
+        (,,, address vrfCoordinator,,,,) = helperConfigObj.activeNetworkConfig();
 
         return createSubscription(vrfCoordinator);
     }
 
-    function createSubscription(
-        address vrfCoordinator
-    ) public returns (uint64) {
+    function createSubscription(address vrfCoordinator) public returns (uint64) {
         console.log("Creating subscription ID", block.chainid);
 
         // Will call createSubscription on VRFCoordinatorV2Mock
         vm.startBroadcast();
-        uint64 subId = VRFCoordinatorV2Mock(vrfCoordinator)
-            .createSubscription();
+        uint64 subId = VRFCoordinatorV2Mock(vrfCoordinator).createSubscription();
         vm.stopBroadcast();
         console.log("Subscription ID", subId);
         console.log("Update this SubID in HelperConfig.s.sol");
@@ -42,24 +38,11 @@ contract FundSubscription is Script {
 
     function fundsubScriptionUsingConfig() public {
         HelperConfig helperConfigObj = new HelperConfig();
-        (
-            ,
-            ,
-            ,
-            address vrfCoordinator,
-            ,
-            uint64 subId,
-            ,
-            address linkAdd
-        ) = helperConfigObj.activeNetworkConfig();
+        (,,, address vrfCoordinator,, uint64 subId,, address linkAdd) = helperConfigObj.activeNetworkConfig();
         fundSubscription(subId, vrfCoordinator, linkAdd);
     }
 
-    function fundSubscription(
-        uint64 subId,
-        address vrfCoordinator,
-        address linkAdd
-    ) public {
+    function fundSubscription(uint64 subId, address vrfCoordinator, address linkAdd) public {
         console.log("Funding Subscription ID", subId);
         // Will call fundSubscription on VRFCoordinatorV2Mock
         console.log("Using VRF Coordinator", vrfCoordinator);
@@ -68,18 +51,11 @@ contract FundSubscription is Script {
 
         if (block.chainid == 31337) {
             vm.startBroadcast();
-            VRFCoordinatorV2Mock(vrfCoordinator).fundSubscription(
-                subId,
-                FUND_LINK_AMOUNT
-            );
+            VRFCoordinatorV2Mock(vrfCoordinator).fundSubscription(subId, FUND_LINK_AMOUNT);
             vm.stopBroadcast();
         } else {
             vm.startBroadcast();
-            LinkToken(linkAdd).transferAndCall(
-                vrfCoordinator,
-                FUND_LINK_AMOUNT,
-                abi.encode(subId)
-            );
+            LinkToken(linkAdd).transferAndCall(vrfCoordinator, FUND_LINK_AMOUNT, abi.encode(subId));
             vm.stopBroadcast();
         }
     }
@@ -90,11 +66,7 @@ contract FundSubscription is Script {
 }
 
 contract AddConsumer is Script {
-    function addConsumer(
-        address raffle,
-        address vrfCoordinator,
-        uint64 subId
-    ) public {
+    function addConsumer(address raffle, address vrfCoordinator, uint64 subId) public {
         console.log("Adding Consumer to Raffle Contract", raffle);
         console.log("Using VRF Coordinator", vrfCoordinator);
         console.log("Using Subscription ID", subId);
@@ -115,16 +87,12 @@ contract AddConsumer is Script {
             ,
             uint64 subId, //address linkAdd "Dont need this| AddConsumer Fn in VRFMock takes only VRF Cordinator and SubID as input" "
             ,
-
         ) = helperConfigObj.activeNetworkConfig();
         addConsumer(raffle, vrfCoordinator, subId);
     }
 
     function run() external {
-        address raffle = DevOpsTools.get_most_recent_deployment(
-            "Most Rrecent Raffle Contract",
-            block.chainid
-        );
+        address raffle = DevOpsTools.get_most_recent_deployment("Most Rrecent Raffle Contract", block.chainid);
         addConsumerUsingConfig(raffle);
     }
 }

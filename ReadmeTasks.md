@@ -88,7 +88,16 @@ We want to create a 100% Random Lottery that can be proved to be random!
   3) Check Array of Participants is being updated / recorded
   4) Emits Events that Participant has entered the raffle!
    4.1) expectEmit FN in foundry works with Bool, and need emiter's adress (contract address)
-     
+
+  5) PerformUpkeep Test Now runs, after we have created the CreateSubscription, FundSubscription and AddConsumer using ChainLinkVRF 
+  6) We can also see how much we have covered using the command:  
+     """forge coverage --report debug > coverage.txt""" 
+
+  7) What if we need to Test an Event Output? We can do that with "Emits"
+  Events are never accesabble by Smartcontravts, so we don't know Value of any events ;)
+    7.1 We use Cheatcode "RecordLogs" to record all events and then we can access them.
+    7.2 Events are what apps listens to carry out a specific Fn when this event is emitted!
+    7.3 Test "testIfPerformUpkeepUpdatesRaffleStateAndEmitsReqID" uses Record Logs   
 
    
 

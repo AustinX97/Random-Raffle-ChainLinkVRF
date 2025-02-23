@@ -21,6 +21,7 @@
 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 
@@ -42,13 +43,17 @@ contract Raffle is VRFConsumerBaseV2 {
         uint256 timePassed
     );
 
-    /** Type Decleration */
+    /**
+     * Type Decleration
+     */
     enum RaffleState {
         OPEN, // = 0 Open for Participants
         CALCULATING_WINNER // 1 = Calculating Winner | Closed for Participants
     }
 
-    /** State Variables */
+    /**
+     * State Variables
+     */
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint32 private constant NUM_WORDS = 1;
 
@@ -83,9 +88,12 @@ contract Raffle is VRFConsumerBaseV2 {
         s_raffleState = RaffleState.OPEN;
     }
 
-    /** Events Emit - For Logging and Saving Gas */
+    /**
+     * Events Emit - For Logging and Saving Gas
+     */
     event participantsEnteredRaffle(address indexed Participants);
     event theWinnerIs(address indexed winner);
+    event RequestedRaffleWinner(uint256 indexed requestId);
 
     function enterRaffle() external payable {
         if (s_raffleState == RaffleState.CALCULATING_WINNER) {
@@ -143,14 +151,14 @@ contract Raffle is VRFConsumerBaseV2 {
         }
 
         s_raffleState = RaffleState.CALCULATING_WINNER;
-        //uint256 requestId =
-        i_vrfCoordinator.requestRandomWords(
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             i_callbackGasLimit,
             NUM_WORDS
         );
+        emit RequestedRaffleWinner(requestId);
     }
 
     //CEI Design Model

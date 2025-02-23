@@ -23,36 +23,20 @@ contract DeployRaffle is Script {
         if (subscriptionId == 0) {
             // We need to create a sub ID
             CreateSubscription creatrSubscriptionObj = new CreateSubscription();
-            subscriptionId = creatrSubscriptionObj.createSubscription(
-                vrfCoordinator
-            );
+            subscriptionId = creatrSubscriptionObj.createSubscription(vrfCoordinator);
             //Now we have the SubId, we need to fund it as well, that we do in Interactions.s.sol
             FundSubscription fundSubscriptionObj = new FundSubscription();
-            fundSubscriptionObj.fundSubscription(
-                subscriptionId,
-                vrfCoordinator,
-                linkAdd
-            );
+            fundSubscriptionObj.fundSubscription(subscriptionId, vrfCoordinator, linkAdd);
         }
 
         vm.startBroadcast();
         Raffle raffleObj = new Raffle(
-            _enteranceFee,
-            interval,
-            lastTimeStamp,
-            vrfCoordinator,
-            gasLane,
-            subscriptionId,
-            callbackGasLimit
+            _enteranceFee, interval, lastTimeStamp, vrfCoordinator, gasLane, subscriptionId, callbackGasLimit
         );
         vm.stopBroadcast();
 
         AddConsumer addConsumerObj = new AddConsumer();
-        addConsumerObj.addConsumer(
-            address(raffleObj),
-            vrfCoordinator,
-            subscriptionId
-        );
+        addConsumerObj.addConsumer(address(raffleObj), vrfCoordinator, subscriptionId);
 
         return (raffleObj, helperConfigObj);
     }
